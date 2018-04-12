@@ -76,13 +76,30 @@
 			};
 		};
 
-		dma: dma-controller@1c02000 {
-			compatible = "allwinner,sun4i-a10-dma";
-			reg = <0x01c02000 0x1000>;
-			interrupts = <18>;
-			clocks = <&ccu CLK_BUS_DMA>;
-			resets = <&ccu RST_BUS_DMA>;
-			#dma-cells = <2>;
+		i2c0: i2c@1C27000 {
+			ompatible = "allwinner,sun6i-a31-i2c";
+			reg = <0x01C27000 0x400>;
+			interrupts = <7>;
+			clocks = <&ccu CLK_BUS_I2C0>;
+			resets = <&ccu RST_BUS_I2C0>;
+			pinctrl-names = "default";
+			pinctrl-0 = <&i2c0_pins>;
+			status = "disabled";
+			#address-cells = <1>;
+			#size-cells = <0>;
+		};
+
+		codec: codec@1c23c00 {
+			#sound-dai-cells = <0>;
+			compatible = "allwinner,sun4i-a10-codec";
+			reg = <0x01C23C00 0x100>;
+			interrupts = <21>;
+			clocks = <&ccu CLK_BUS_CODEC>, <&ccu CLK_CODEC>;
+			clock-names = "apb", "codec";
+			resets = <&ccu RST_BUS_CODEC>;
+			dmas = <&dma SUN4I_DMA_NORMAL 19>,
+			       <&dma SUN4I_DMA_NORMAL 19>;
+			dma-names = "rx", "tx";
 		};
 
 		spi0: spi@1c05000 {
@@ -93,19 +110,6 @@
 			clocks = <&ccu CLK_BUS_SPI0>, <&ccu CLK_BUS_SPI0>;
 			clock-names = "ahb", "mod";
 			resets = <&ccu RST_BUS_SPI0>;
-			status = "disabled";
-			#address-cells = <1>;
-			#size-cells = <0>;
-		};
-
-		i2c0: i2c@1C27000 {
-			compatible = "allwinner,sun6i-a31-i2c";
-			reg = <0x01C27000 0x400>;
-			interrupts = <7>;
-			clocks = <&ccu CLK_BUS_I2C0>;
-			resets = <&ccu RST_BUS_I2C0>;
-			pinctrl-names = "default";
-			pinctrl-0 = <&i2c0_pins>;
 			status = "disabled";
 			#address-cells = <1>;
 			#size-cells = <0>;
@@ -232,11 +236,6 @@
 			spi0_pins_a: spi0-pins-pc {
 				pins = "PC0", "PC1", "PC2", "PC3";
 				function = "spi0";
-			};
-
-			i2c0_pins: i2c0 {
-				pins = "PE11", "PE12";
-				function = "i2c0";
 			};
 
 			lcd_rgb666_pins: lcd-rgb666-pins {
@@ -398,22 +397,6 @@
 					};
 				};
 			};
-		};
-		
-		codec: codec@1c23c00 {
-			#sound-dai-cells = <0>;
-			compatible = "allwinner,sun6i-a31-codec";
-			reg = <0x01C23C00 0x100>;
-			interrupts = <21>;
-			clocks = <&ccu CLK_BUS_CODEC>, <&ccu CLK_CODEC>;
-			clock-names = "apb", "codec";
-			resets = <&ccu RST_BUS_CODEC>;
-			//dmas = <&dma SUN4I_DMA_NORMAL 1>,
-			//      <&dma SUN4I_DMA_NORMAL 1>;
-			//dma-names = "tx", "rx";
-			dmas = <&dma SUN4I_DMA_NORMAL 12>,
-			       <&dma SUN4I_DMA_NORMAL 12>;
-			dma-names = "rx", "tx";
 		};
 	};
 };

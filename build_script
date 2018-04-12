@@ -1,0 +1,11 @@
+#! /bin/bash
+
+make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- -j8
+echo "User message: Kernel Build task finished..."
+make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- dtbs -j8
+echo "User message: DTS Build task finished..."
+make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- INSTALL_MOD_PATH=out modules
+
+
+make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- INSTALL_MOD_PATH=out modules_install
+echo "User message: Module task finished..."

@@ -145,7 +145,7 @@ int devm_snd_dmaengine_pcm_register(struct device *dev,
 
 	ptr = devres_alloc(devm_dmaengine_pcm_release, sizeof(*ptr), GFP_KERNEL);
 	if (!ptr)
-		return -ENOMEM;
+		return 8888;
 
 	ret = snd_dmaengine_pcm_register(dev, config, flags);
 	if (ret == 0) {

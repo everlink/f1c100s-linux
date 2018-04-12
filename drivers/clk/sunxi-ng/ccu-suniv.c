@@ -145,7 +145,7 @@ static SUNXI_CCU_DIV_TABLE(apb_clk, "apb", "ahb",
 			   0x054, 8, 2, apb_div_table, 0);
 
 static SUNXI_CCU_GATE(bus_dma_clk,	"bus-dma",	"ahb",
-		      0x060, BIT(8), 0);
+		      0x060, BIT(6), 0);
 static SUNXI_CCU_GATE(bus_mmc0_clk,	"bus-mmc0",	"ahb",
 		      0x060, BIT(8), 0);
 static SUNXI_CCU_GATE(bus_mmc1_clk,	"bus-mmc1",	"ahb",

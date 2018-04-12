@@ -707,17 +707,23 @@ struct dma_chan *dma_request_chan(struct device *dev, const char *name)
 	struct dma_chan *chan = NULL;
 
 	/* If device-tree is present get slave info from here */
-	if (dev->of_node)
+	if (dev->of_node){
 		chan = of_dma_request_slave_channel(dev->of_node, name);
+		dev_err(dev,"DMA slave channel Name %s \n",name);
+		dev_err(dev,"DMA slave channel ID %d \n",chan);
+	}
 
 	/* If device was enumerated by ACPI get slave info from here */
 	if (has_acpi_companion(dev) && !chan)
 		chan = acpi_dma_request_slave_chan_by_name(dev, name);
 
 	if (chan) {
+
 		/* Valid channel found or requester need to be deferred */
-		if (!IS_ERR(chan) || PTR_ERR(chan) == -EPROBE_DEFER)
+		if (!IS_ERR(chan) || PTR_ERR(chan) == -EPROBE_DEFER){
+			dev_err(dev,"DMA error : Valid channel found or requester need to be deferred\n");
 			return chan;
+		}
 	}
 
 	/* Try to find the channel via the DMA filter map(s) */
@@ -725,7 +731,7 @@ struct dma_chan *dma_request_chan(struct device *dev, const char *name)
 	list_for_each_entry_safe(d, _d, &dma_device_list, global_node) {
 		dma_cap_mask_t mask;
 		const struct dma_slave_map *map = dma_filter_match(d, name, dev);
-
+		dev_err(dev,"DMA fileter name %s", name);
 		if (!map)
 			continue;
 

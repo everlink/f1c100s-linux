@@ -25,7 +25,7 @@
 	};
 
 	panel: panel {
-		compatible = "qiaodian,qd43003c0-40","simple-panel";
+		compatible = "lg,lb070wv8", "simple-panel";
 		#address-cells = <1>;
 		#size-cells = <0>;
 		enable-gpios = <&pio 4 6 GPIO_ACTIVE_HIGH>;
@@ -69,6 +69,25 @@
 			};
 	};
 };
+
+
+&pio {
+        gt911_int_pin: gt911_int_pin {
+                pins = "PE10";
+                function = "gpio_in";
+        };
+
+	ts_reset_pin: ts_reset_pin {
+		pins = "PE9";
+		function = "gpio_out";
+	};
+
+	i2c0_pins: i2c0 {
+		pins = "PE11", "PE12";
+		function = "i2c0";
+	};
+};
+
 
 &de {
 	status = "okay";
@@ -168,4 +187,3 @@
 				"Mic",  "HBIAS";
 	status = "okay";
 };
-
