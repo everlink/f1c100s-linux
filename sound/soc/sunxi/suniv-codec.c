@@ -235,13 +235,24 @@ static int suniv_codec_prepare_capture(struct snd_pcm_substream *substream,
 	 *        Allwinner's code mentions that it is related
 	 *        related to microphone gain
 	 */
-	if (of_device_is_compatible(scodec->dev->of_node,
+	/*
+	 * FIXME One More Time: Undocumented in the datasheet, 
+	 * 						so I give up to fix it.
+	 */
+
+	/* if (of_device_is_compatible(scodec->dev->of_node,
 								"allwinner,suniv-codec"))
+	{
+		regmap_update_bits(scodec->regmap, SUNIV_CODEC_ADC_ACTL,
+						   BIT(SUNIV_CODEC_DAC_ACTL_HPPAEN),
+						   BIT(SUNIV_CODEC_DAC_ACTL_HPPAEN));
+	}
+	else
 	{
 		regmap_update_bits(scodec->regmap, SUNIV_CODEC_ADC_ACTL,
 						   0x3 << 25,
 						   0x1 << 25);
-	}
+	} */
 
 	return 0;
 }
@@ -438,7 +449,7 @@ static int suniv_codec_hw_params_playback(struct suniv_codec *scodec,
 
 		/* Set TX FIFO mode to padding the LSBs with 0 */
 		regmap_update_bits(scodec->regmap, SUNIV_CODEC_DAC_FIFOC,
-				   BIT(SUNIV_CODEC_DAC_FIFOC_TX_SAMPLE_BITS),
+				   BIT(SUNIV_CODEC_DAC_FIFOC_TX_FIFO_MODE),
 				   0);
 
 		scodec->playback_dma_data.addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES;
@@ -458,7 +469,7 @@ static int suniv_codec_hw_params_playback(struct suniv_codec *scodec,
 	return 0;
 }
 
-static int sun4i_codec_hw_params(struct snd_pcm_substream *substream,
+static int suniv_codec_hw_params(struct snd_pcm_substream *substream,
 				 struct snd_pcm_hw_params *params,
 				 struct snd_soc_dai *dai)
 {
@@ -837,7 +848,7 @@ struct suniv_codec_quirks {
 	bool has_reset;
 };
 
-static const struct suniv_codec_quirks sun4i_codec_quirks = {
+static const struct suniv_codec_quirks suniv_codec_quirks = {
 	.regmap_config	= &suniv_codec_regmap_config,
 	.codec		= &suniv_codec_codec,
 	.create_card	= suniv_codec_create_card,
@@ -975,7 +986,6 @@ static int suniv_codec_probe(struct platform_device *pdev)
 
 	ret = devm_snd_dmaengine_pcm_register(&pdev->dev, NULL, 0);
 	if (ret) {
-		dev_err(&pdev->dev, "fail no : %d \n", ret);
 		dev_err(&pdev->dev, "Failed to register against DMAEngine\n");
 		goto err_unregister_codec;
 	}

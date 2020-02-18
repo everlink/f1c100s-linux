@@ -140,8 +140,9 @@ void machine_restart(char *cmd)
 {
 	local_irq_disable();
 	smp_send_stop();
-
+	printk("arm_pm_restart : %d",(bool)arm_pm_restart);
 	if (arm_pm_restart)
+		
 		arm_pm_restart(reboot_mode, cmd);
 	else
 		do_kernel_restart(cmd);

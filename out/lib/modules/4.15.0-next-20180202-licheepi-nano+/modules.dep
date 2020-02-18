@@ -1,10 +1,3 @@
 kernel/crypto/echainiv.ko:
 kernel/drivers/video/backlight/lcd.ko:
-kernel/drivers/net/mii.ko:
-kernel/drivers/net/usb/rtl8150.ko:
-kernel/drivers/usb/mon/usbmon.ko:
 kernel/drivers/input/touchscreen/goodix.ko:
-kernel/drivers/staging/rtl8723bs/r8723bs.ko:
-kernel/sound/drivers/snd-aloop.ko:
-kernel/sound/soc/sunxi/sun4i-i2s.ko:
-kernel/sound/soc/sunxi/sun4i-spdif.ko:

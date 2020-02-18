@@ -27,11 +27,12 @@
 #include <linux/spi/flash.h>
 #include <linux/mtd/spi-nor.h>
 
-#define	MAX_CMD_SIZE		6
-struct m25p {
-	struct spi_device	*spi;
-	struct spi_nor		spi_nor;
-	u8			command[MAX_CMD_SIZE];
+#define MAX_CMD_SIZE 6
+struct m25p
+{
+	struct spi_device *spi;
+	struct spi_nor spi_nor;
+	u8 command[MAX_CMD_SIZE];
 };
 
 static int m25p80_read_reg(struct spi_nor *nor, u8 code, u8 *val, int len)
@@ -50,7 +51,7 @@ static int m25p80_read_reg(struct spi_nor *nor, u8 code, u8 *val, int len)
 static void m25p_addr2cmd(struct spi_nor *nor, unsigned int addr, u8 *cmd)
 {
 	/* opcode is in cmd[0] */
-	cmd[1] = addr >> (nor->addr_width * 8 -  8);
+	cmd[1] = addr >> (nor->addr_width * 8 - 8);
 	cmd[2] = addr >> (nor->addr_width * 8 - 16);
 	cmd[3] = addr >> (nor->addr_width * 8 - 24);
 	cmd[4] = addr >> (nor->addr_width * 8 - 32);
@@ -74,7 +75,7 @@ static int m25p80_write_reg(struct spi_nor *nor, u8 opcode, u8 *buf, int len)
 }
 
 static ssize_t m25p80_write(struct spi_nor *nor, loff_t to, size_t len,
-			    const u_char *buf)
+							const u_char *buf)
 {
 	struct m25p *flash = nor->priv;
 	struct spi_device *spi = flash->spi;
@@ -104,7 +105,8 @@ static ssize_t m25p80_write(struct spi_nor *nor, loff_t to, size_t len,
 
 	/* split the op code and address bytes into two transfers if needed. */
 	data_idx = 1;
-	if (addr_nbits != inst_nbits) {
+	if (addr_nbits != inst_nbits)
+	{
 		t[0].len = 1;
 
 		t[1].tx_buf = &flash->command[1];
@@ -135,7 +137,7 @@ static ssize_t m25p80_write(struct spi_nor *nor, loff_t to, size_t len,
  * may be any size provided it is within the physical boundaries.
  */
 static ssize_t m25p80_read(struct spi_nor *nor, loff_t from, size_t len,
-			   u_char *buf)
+						   u_char *buf)
 {
 	struct m25p *flash = nor->priv;
 	struct spi_device *spi = flash->spi;
@@ -154,7 +156,8 @@ static ssize_t m25p80_read(struct spi_nor *nor, loff_t from, size_t len,
 	/* convert the dummy cycles to the number of bytes */
 	dummy = (dummy * addr_nbits) / 8;
 
-	if (spi_flash_read_supported(spi)) {
+	if (spi_flash_read_supported(spi))
+	{
 		struct spi_flash_read_message msg;
 
 		memset(&msg, 0, sizeof(msg));
@@ -199,7 +202,8 @@ static ssize_t m25p80_read(struct spi_nor *nor, loff_t from, size_t len,
 
 	/* split the op code and address bytes into two transfers if needed. */
 	data_idx = 1;
-	if (addr_nbits != inst_nbits) {
+	if (addr_nbits != inst_nbits)
+	{
 		t[0].len = 1;
 
 		t[1].tx_buf = &flash->command[1];
@@ -213,7 +217,7 @@ static ssize_t m25p80_read(struct spi_nor *nor, loff_t from, size_t len,
 	t[data_idx].rx_buf = buf;
 	t[data_idx].rx_nbits = data_nbits;
 	t[data_idx].len = min3(len, spi_max_transfer_size(spi),
-			       spi_max_message_size(spi) - cmd_sz);
+						   spi_max_message_size(spi) - cmd_sz);
 	spi_message_add_tail(&t[data_idx], &m);
 
 	ret = spi_sync(spi, &m);
@@ -233,13 +237,13 @@ static ssize_t m25p80_read(struct spi_nor *nor, loff_t from, size_t len,
  */
 static int m25p_probe(struct spi_device *spi)
 {
-	struct flash_platform_data	*data;
+	struct flash_platform_data *data;
 	struct m25p *flash;
 	struct spi_nor *nor;
 	struct spi_nor_hwcaps hwcaps = {
 		.mask = SNOR_HWCAPS_READ |
-			SNOR_HWCAPS_READ_FAST |
-			SNOR_HWCAPS_PP,
+				SNOR_HWCAPS_READ_FAST |
+				SNOR_HWCAPS_PP,
 	};
 	char *flash_name;
 	int ret;
@@ -265,14 +269,17 @@ static int m25p_probe(struct spi_device *spi)
 	spi_set_drvdata(spi, flash);
 	flash->spi = spi;
 
-	if (spi->mode & SPI_RX_QUAD) {
+	if (spi->mode & SPI_RX_QUAD)
+	{
 		hwcaps.mask |= SNOR_HWCAPS_READ_1_1_4;
 
 		if (spi->mode & SPI_TX_QUAD)
 			hwcaps.mask |= (SNOR_HWCAPS_READ_1_4_4 |
-					SNOR_HWCAPS_PP_1_1_4 |
-					SNOR_HWCAPS_PP_1_4_4);
-	} else if (spi->mode & SPI_RX_DUAL) {
+							SNOR_HWCAPS_PP_1_1_4 |
+							SNOR_HWCAPS_PP_1_4_4);
+	}
+	else if (spi->mode & SPI_RX_DUAL)
+	{
 		hwcaps.mask |= SNOR_HWCAPS_READ_1_1_2;
 
 		if (spi->mode & SPI_TX_DUAL)
@@ -299,13 +306,12 @@ static int m25p_probe(struct spi_device *spi)
 		return ret;
 
 	return mtd_device_register(&nor->mtd, data ? data->parts : NULL,
-				   data ? data->nr_parts : 0);
+							   data ? data->nr_parts : 0);
 }
-
 
 static int m25p_remove(struct spi_device *spi)
 {
-	struct m25p	*flash = spi_get_drvdata(spi);
+	struct m25p *flash = spi_get_drvdata(spi);
 
 	spi_nor_restore(&flash->spi_nor);
 
@@ -318,6 +324,15 @@ static void m25p_shutdown(struct spi_device *spi)
 	struct m25p *flash = spi_get_drvdata(spi);
 
 	spi_nor_restore(&flash->spi_nor);
+	/*struct m25p *flash = spi_get_drvdata(spi);
+	struct spi_nor nor = flash->spi_nor;
+	int status;
+	//add to exit 4-byte address mode
+	nor.write_reg(&nor, SPINOR_OP_WREN, NULL, 0);
+	status = nor.write_reg(&nor, SPINOR_OP_EX4B, NULL, 0);
+	printk("remove spi flash!\n");
+	mtd_device_unregister(&flash->spi_nor.mtd);
+	return;*/
 }
 /*
  * Do NOT add to this array without reading the following:
@@ -343,36 +358,69 @@ static const struct spi_device_id m25p_ids[] = {
 	 * Entries not used in DTs that should be safe to drop after replacing
 	 * them with "spi-nor" in platform data.
 	 */
-	{"s25sl064a"},	{"w25x16"},	{"m25p10"},	{"m25px64"},
+	{"s25sl064a"},
+	{"w25x16"},
+	{"m25p10"},
+	{"m25px64"},
 
 	/*
 	 * Entries that were used in DTs without "jedec,spi-nor" fallback and
 	 * should be kept for backward compatibility.
 	 */
-	{"at25df321a"},	{"at25df641"},	{"at26df081a"},
-	{"mx25l4005a"},	{"mx25l1606e"},	{"mx25l6405d"},	{"mx25l12805d"},
-	{"mx25l25635e"},{"mx66l51235l"},
-	{"n25q064"},	{"n25q128a11"},	{"n25q128a13"},	{"n25q512a"},
-	{"s25fl256s1"},	{"s25fl512s"},	{"s25sl12801"},	{"s25fl008k"},
+	{"at25df321a"},
+	{"at25df641"},
+	{"at26df081a"},
+	{"mx25l4005a"},
+	{"mx25l1606e"},
+	{"mx25l6405d"},
+	{"mx25l12805d"},
+	{"mx25l25635e"},
+	{"mx66l51235l"},
+	{"n25q064"},
+	{"n25q128a11"},
+	{"n25q128a13"},
+	{"n25q512a"},
+	{"s25fl256s1"},
+	{"s25fl512s"},
+	{"s25sl12801"},
+	{"s25fl008k"},
 	{"s25fl064k"},
-	{"sst25vf040b"},{"sst25vf016b"},{"sst25vf032b"},{"sst25wf040"},
-	{"m25p40"},	{"m25p80"},	{"m25p16"},	{"m25p32"},
-	{"m25p64"},	{"m25p128"},
-	{"w25x80"},	{"w25x32"},	{"w25q32"},	{"w25q32dw"},
-	{"w25q80bl"},	{"w25q128"},	{"w25q256"},
+	{"sst25vf040b"},
+	{"sst25vf016b"},
+	{"sst25vf032b"},
+	{"sst25wf040"},
+	{"m25p40"},
+	{"m25p80"},
+	{"m25p16"},
+	{"m25p32"},
+	{"m25p64"},
+	{"m25p128"},
+	{"w25x80"},
+	{"w25x32"},
+	{"w25q32"},
+	{"w25q32dw"},
+	{"w25q80bl"},
+	{"w25q128"},
+	{"w25q256"},
 
 	/* Flashes that can't be detected using JEDEC */
-	{"m25p05-nonjedec"},	{"m25p10-nonjedec"},	{"m25p20-nonjedec"},
-	{"m25p40-nonjedec"},	{"m25p80-nonjedec"},	{"m25p16-nonjedec"},
-	{"m25p32-nonjedec"},	{"m25p64-nonjedec"},	{"m25p128-nonjedec"},
+	{"m25p05-nonjedec"},
+	{"m25p10-nonjedec"},
+	{"m25p20-nonjedec"},
+	{"m25p40-nonjedec"},
+	{"m25p80-nonjedec"},
+	{"m25p16-nonjedec"},
+	{"m25p32-nonjedec"},
+	{"m25p64-nonjedec"},
+	{"m25p128-nonjedec"},
 
 	/* Everspin MRAMs (non-JEDEC) */
-	{ "mr25h128" }, /* 128 Kib, 40 MHz */
-	{ "mr25h256" }, /* 256 Kib, 40 MHz */
-	{ "mr25h10" },  /*   1 Mib, 40 MHz */
-	{ "mr25h40" },  /*   4 Mib, 40 MHz */
+	{"mr25h128"}, /* 128 Kib, 40 MHz */
+	{"mr25h256"}, /* 256 Kib, 40 MHz */
+	{"mr25h10"},  /*   1 Mib, 40 MHz */
+	{"mr25h40"},  /*   4 Mib, 40 MHz */
 
-	{ },
+	{},
 };
 MODULE_DEVICE_TABLE(spi, m25p_ids);
 
@@ -381,20 +429,19 @@ static const struct of_device_id m25p_of_table[] = {
 	 * Generic compatibility for SPI NOR that can be identified by the
 	 * JEDEC READ ID opcode (0x9F). Use this, if possible.
 	 */
-	{ .compatible = "jedec,spi-nor" },
-	{}
-};
+	{.compatible = "jedec,spi-nor"},
+	{}};
 MODULE_DEVICE_TABLE(of, m25p_of_table);
 
 static struct spi_driver m25p80_driver = {
 	.driver = {
-		.name	= "m25p80",
+		.name = "m25p80",
 		.of_match_table = m25p_of_table,
 	},
-	.id_table	= m25p_ids,
-	.probe	= m25p_probe,
-	.remove	= m25p_remove,
-	.shutdown	= m25p_shutdown,
+	.id_table = m25p_ids,
+	.probe = m25p_probe,
+	.remove = m25p_remove,
+	.shutdown = m25p_shutdown,
 
 	/* REVISIT: many of these chips have deep power-down modes, which
 	 * should clearly be entered on suspend() to minimize power use.

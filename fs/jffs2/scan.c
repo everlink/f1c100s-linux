@@ -607,7 +607,6 @@ full_scan:
 
 scan_more:
 	while(ofs < jeb->offset + c->sector_size) {
-
 		jffs2_dbg_acct_paranoia_check_nolock(c, jeb);
 
 		/* Make sure there are node refs available for use */
@@ -681,7 +680,8 @@ scan_more:
 			/* Ran off end. */
 			jffs2_dbg(1, "Empty flash to end of buffer at 0x%08x\n",
 				  ofs);
-
+			
+			// printk("Empty flash to end of buffer at 0x%08x\n",ofs);
 			/* If we're only checking the beginning of a block with a cleanmarker,
 			   bail now */
 			if (buf_ofs == jeb->offset && jeb->used_size == PAD(c->cleanmarker_size) &&
@@ -989,7 +989,6 @@ static int jffs2_scan_inode_node(struct jffs2_sb_info *c, struct jffs2_erasebloc
 	uint32_t crc, ino = je32_to_cpu(ri->ino);
 
 	jffs2_dbg(1, "%s(): Node at 0x%08x\n", __func__, ofs);
-
 	/* We do very little here now. Just check the ino# to which we should attribute
 	   this node; we can do all the CRC checking etc. later. There's a tradeoff here --
 	   we used to scan the flash once only, reading everything we want from it into

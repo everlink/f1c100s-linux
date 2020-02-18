@@ -24,8 +24,17 @@
 		stdout-path = "serial0:115200n8";
 	};
 
+	reg_vcc3v3: vcc3v3 {
+		compatible = "regulator-fixed";
+		regulator-name = "vcc3v3";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+	};
+
 	panel: panel {
-		compatible = "qiaodian,qd43003c0-40","simple-panel";
+		compatible = "qiaodian,qd43003c0-40", "simple-panel";
+		/* compatible = "lg,lb070wv8", "simple-panel"; */
+		/* compatible = "sharp,lq043t1dg04", "simple-panel"; */
 		#address-cells = <1>;
 		#size-cells = <0>;
 		enable-gpios = <&pio 4 6 GPIO_ACTIVE_HIGH>;
@@ -42,35 +51,72 @@
 		};
 	};
 
-	reg_vcc3v3: vcc3v3 {
-		compatible = "regulator-fixed";
-		regulator-name = "vcc3v3";
-		regulator-min-microvolt = <3300000>;
-		regulator-max-microvolt = <3300000>;
-	};
-
 	leds {
 		compatible = "gpio-leds";
 
+			// blue_led {
+			// 	label = "licheepi:blue:usr";
+			// 	gpios = <&pio 4 4 GPIO_ACTIVE_LOW>; /* PE4 */
+			// 	linux,default-trigger = "disk-activity";
+			// };
+
 			blue_led {
 				label = "licheepi:blue:usr";
-				gpios = <&pio 4 4 GPIO_ACTIVE_LOW>; /* PE4 */
-			};
-
-			green_led {
-				label = "licheepi:green:usr";
 				gpios = <&pio 4 5 GPIO_ACTIVE_LOW>; /* PE5 */
-				default-state = "on";
+				linux,default-trigger = "heartbeat";
 			};
 
-			red_led {
-				label = "licheepi:red:usr";
-				gpios = <&pio 5 6 GPIO_ACTIVE_LOW>; /* PE6 */
-			};
 	};
+
+	
 };
 
 &de {
+	status = "okay";
+};
+
+&spi0 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&spi0_pins_a>;
+	status = "okay";
+	spi-max-frequency = <50000000>;
+	flash: w25q128@0 {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "winbond,w25q128", "jedec,spi-nor";
+		reg = <0>;
+		spi-max-frequency = <50000000>;
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			partition@0 {
+				label = "u-boot";
+				reg = <0x000000 0x100000>;
+			};
+
+			partition@100000 {
+				label = "dtb";
+				reg = <0x100000 0x10000>;
+			};
+
+			partition@110000 {
+				label = "kernel";
+				reg = <0x110000 0x400000>;
+			};
+
+			partition@510000 {
+				label = "rootfs";
+				reg = <0x510000 0xAF0000>;
+			};
+		};
+	};
+};
+
+&uart0 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&uart0_pins_a>;
 	status = "okay";
 };
 
@@ -79,24 +125,6 @@
 	bus-width = <4>;
 	broken-cd;
 	status = "okay";
-};
-
-&otg_sram {
-	status = "okay";
-};
-
-&spi0 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&spi0_pins_a>;
-	status = "okay";
-
-	flash@0 {
-		#address-cells = <1>;
-		#size-cells = <1>;
-		compatible = "winbond,w25q128", "jedec,spi-nor";
-		reg = <0>;
-		spi-max-frequency = <40000000>;
-	};
 };
 
 &tcon0 {
@@ -112,60 +140,66 @@
 	};
 };
 
-&uart0 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&uart0_pins_a>;
-	status = "okay";
-};
-
 &i2c0 {
 	pinctrl-0 = <&i2c0_pins>;
 	pinctrl-names = "default";
 	status = "okay";
 
-	gt911: touchscreen@14 {
+	gt911: touchscreen@5d {
 		compatible = "goodix,gt911";
-		reg = <0x14>;
+		reg = <0x5d>;
 		interrupt-parent = <&pio>;
-		interrupts = <4 10 IRQ_TYPE_EDGE_FALLING>; /* EINT21 (PH21) */
+		interrupts = <4 3 IRQ_TYPE_EDGE_FALLING>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&ts_reset_pin>;
-		irq-gpios = <&pio 4 10 GPIO_ACTIVE_HIGH>; /* INT (PH21) */
-		reset-gpios = <&pio 4 9 GPIO_ACTIVE_HIGH>; /* RST (PB13) */
-		touchscreen-swapped-x-y;
+		irq-gpios = <&pio 4 3 GPIO_ACTIVE_HIGH>; /* INT */
+		reset-gpios = <&pio 4 4 GPIO_ACTIVE_HIGH>; /* RST */
+		/* touchscreen-swapped-x-y; */
 	};
 };
-
 
 &pio {
         gt911_int_pin: gt911_int_pin@0 {
-                pins = "PE10";
+                pins = "PE3";
                 function = "gpio_in";
         };
 
-	ts_reset_pin: ts_reset_pin@0 {
-		pins = "PE9";
-		function = "gpio_out";
+		ts_reset_pin: ts_reset_pin@0 {
+			pins = "PE4";
+			function = "gpio_out";
+		};
+};
+
+&lradc {
+	vref-supply = <&reg_vcc3v3>;
+	status = "okay";
+
+	button@200 {
+		label = "Volume Up";
+		linux,code = <KEY_VOLUMEUP>;
+		channel = <0>;
+		voltage = <200000>;
 	};
-};
 
-&usb_otg {
-	dr_mode = "otg";
-	status = "okay";
-};
+	button@400 {
+		label = "Volume Down";
+		linux,code = <KEY_VOLUMEDOWN>;
+		channel = <0>;
+		voltage = <400000>;
+	};
 
+	button@600 {
+		label = "Select";
+		linux,code = <KEY_SELECT>;
+		channel = <0>;
+		voltage = <600000>;
+	};
 
-&usbphy {
-	usb0_id_det-gpio = <&pio 4 2 GPIO_ACTIVE_HIGH>; /* PE2 */
-	status = "okay";
-};
-
-&codec {
-	allwinner,audio-routing =
-				"Headphone", "HP",
-				"Headphone", "HPCOM",
-				"MIC1", "Mic",
-				"Mic",  "HBIAS";
-	status = "okay";
+	button@800 {
+		label = "Start";
+		linux,code = <KEY_OK>;
+		channel = <0>;
+		voltage = <800000>;
+	};
 };
 

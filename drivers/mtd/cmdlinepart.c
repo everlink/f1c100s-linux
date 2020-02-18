@@ -204,7 +204,9 @@ static struct mtd_partition * newpart(char *s,
 	dbg(("partition %d: name <%s>, offset %llx, size %llx, mask flags %x\n",
 	     this_part, parts[this_part].name, parts[this_part].offset,
 	     parts[this_part].size, parts[this_part].mask_flags));
-
+	printk("partition %d: name <%s>, offset %llx, size %llx, mask flags %x\n",
+	     this_part, parts[this_part].name, parts[this_part].offset,
+	     parts[this_part].size, parts[this_part].mask_flags);
 	/* return (updated) pointer to extra_mem memory */
 	if (extra_mem_ptr)
 		*extra_mem_ptr = extra_mem;
@@ -241,6 +243,8 @@ static int mtdpart_setup_real(char *s)
 		mtd_id_len = p - mtd_id;
 
 		dbg(("parsing <%s>\n", p+1));
+
+		printk("parsing <%s>\n", p+1);
 
 		/*
 		 * parse one mtd. have it reserve memory for the

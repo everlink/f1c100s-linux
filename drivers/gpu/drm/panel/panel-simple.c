@@ -1246,7 +1246,7 @@ static const struct drm_display_mode lg_lb070wv8_mode = {
 	.hdisplay = 800,
 	.hsync_start = 800 + 88,
 	.hsync_end = 800 + 88 + 80,
-	.htotal = 800 + 88 + 80 + 88,
+	.htotal = 800 + 88 + 80 + 88, 
 	.vdisplay = 480,
 	.vsync_start = 480 + 10,
 	.vsync_end = 480 + 10 + 25,
@@ -1794,6 +1794,30 @@ static const struct panel_desc sharp_lq150x1lg11 = {
 	.bus_format = MEDIA_BUS_FMT_RGB565_1X16,
 };
 
+static const struct drm_display_mode sharp_lq043t1dg04_mode = {
+	.clock = 8540,
+	.hdisplay = 480,
+	.hsync_start = 480 + 16,
+	.hsync_end = 480 + 16 + 6,
+	.htotal = 480 + 16 + 6 +10,
+	.vdisplay = 272,
+	.vsync_start = 272 + 2,
+	.vsync_end = 272 + 2 + 1,
+	.vtotal = 272 + 2 + 1 + 3,
+	.vrefresh = 60,
+};
+
+static const struct panel_desc sharp_lq043t1dg04 = {
+	.modes = &sharp_lq043t1dg04_mode,
+	.num_modes = 1,
+	.bpc = 8,
+	.size = {
+		.width = 95,
+		.height = 53,
+	},
+	.bus_format = MEDIA_BUS_FMT_RGB888_1X24,
+};
+
 static const struct drm_display_mode shelly_sca07010_bfn_lnn_mode = {
 	.clock = 33300,
 	.hdisplay = 800,
@@ -2192,6 +2216,9 @@ static const struct of_device_id platform_of_match[] = {
 	}, {
 		.compatible = "sharp,lq150x1lg11",
 		.data = &sharp_lq150x1lg11,
+	}, {
+		.compatible = "sharp,lq043t1dg04",
+		.data = &sharp_lq043t1dg04,
 	}, {
 		.compatible = "shelly,sca07010-bfn-lnn",
 		.data = &shelly_sca07010_bfn_lnn,

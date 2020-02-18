@@ -847,7 +847,7 @@ static int mtd_part_do_parse(struct mtd_part_parser *parser,
 	int ret;
 
 	ret = (*parser->parse_fn)(master, &pparts->parts, data);
-	pr_debug("%s: parser %s: %i\n", master->name, parser->name, ret);
+	printk("%s: parser %s: %i\n", master->name, parser->name, ret);
 	if (ret <= 0)
 		return ret;
 
@@ -892,11 +892,11 @@ int parse_mtd_partitions(struct mtd_info *master, const char *const *types,
 		types = default_mtd_part_types;
 
 	for ( ; *types; types++) {
-		pr_debug("%s: parsing partitions %s\n", master->name, *types);
+		printk("%s: parsing partitions %s\n", master->name, *types);
 		parser = mtd_part_parser_get(*types);
 		if (!parser && !request_module("%s", *types))
 			parser = mtd_part_parser_get(*types);
-		pr_debug("%s: got parser %s\n", master->name,
+		printk("%s: got parser %s\n", master->name,
 			 parser ? parser->name : NULL);
 		if (!parser)
 			continue;

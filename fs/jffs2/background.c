@@ -88,6 +88,7 @@ static int jffs2_garbage_collect_thread(void *_c)
 	set_user_nice(current, 10);
 
 	set_freezable();
+
 	for (;;) {
 		sigprocmask(SIG_UNBLOCK, &hupmask, NULL);
 	again:
@@ -100,6 +101,7 @@ static int jffs2_garbage_collect_thread(void *_c)
 		} else {
 			spin_unlock(&c->erase_completion_lock);
 		}
+
 		/* Problem - immediately after bootup, the GCD spends a lot
 		 * of time in places like jffs2_kill_fragtree(); so much so
 		 * that userspace processes (like gdm and X) are starved
@@ -111,7 +113,6 @@ static int jffs2_garbage_collect_thread(void *_c)
 		 * inode in with read_inode() is much preferable to having
 		 * the GC thread get there first. */
 		schedule_timeout_interruptible(msecs_to_jiffies(50));
-
 		if (kthread_should_stop()) {
 			jffs2_dbg(1, "%s(): kthread_stop() called\n", __func__);
 			goto die;
@@ -150,7 +151,6 @@ static int jffs2_garbage_collect_thread(void *_c)
 		}
 		/* We don't want SIGHUP to interrupt us. STOP and KILL are OK though. */
 		sigprocmask(SIG_BLOCK, &hupmask, NULL);
-
 		jffs2_dbg(1, "%s(): pass\n", __func__);
 		if (jffs2_garbage_collect_pass(c) == -ENOSPC) {
 			pr_notice("No space for garbage collection. Aborting GC thread\n");

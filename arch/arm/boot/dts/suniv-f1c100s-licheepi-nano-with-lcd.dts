@@ -8,9 +8,10 @@
 
 / {
 	panel: panel {
-		compatible = "urt,umsh-8596md-t", "simple-panel";
+		compatible = "qiaodian,qd43003c0-40", "simple-panel";
 		#address-cells = <1>;
 		#size-cells = <0>;
+		enable-gpios = <&pio 4 6 GPIO_ACTIVE_HIGH>;
 
 		port@0 {
 			reg = <0>;

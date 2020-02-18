@@ -1,0 +1,975 @@
+original download from:
+http://dl.sipeed.com/LICHEE/Nano/Document/linux-f1c100s-18.05.tar
+
+unpack and see it is a dirty git repo
+
+note a little bit before pull
+
+--git log--
+tree 9a7e931cf6c5b9cf598ef50951d3b74e3c2fd6d5
+parent a70ba94953a37734f38e897c3cb6bf75ba9e3b03
+author Big7lion <biglion77@outlook.com> 1523513001 +0800
+committer Big7lion <biglion77@outlook.com> 1523513001 +0800
+
+    ignore this commit
+
+commit a70ba94953a37734f38e897c3cb6bf75ba9e3b03
+tree c95da9645b66ee98dd21050bb14a19055c29d4e1
+parent 496e8bc5fd176a5cf6c82d865f05c6f06842efad
+author Big7lion <biglion77@outlook.com> 1523512928 +0800
+committer Big7lion <biglion77@outlook.com> 1523512928 +0800
+
+    user modified
+
+commit 496e8bc5fd176a5cf6c82d865f05c6f06842efad
+tree b44681baf7502ab62ee90b453ee5c8e7a47b6897
+parent 7de0c8ff8f671f8c1c90ac2ecbfe8baed0adc790
+author Icenowy Zheng <icenowy@aosc.io> 1516202435 +0800
+committer Icenowy Zheng <icenowy@aosc.io> 1523203135 +0800
+
+    ARM: suniv: f1c100s: add device tree for Lichee Pi Nano with LCD
+    
+    Signed-off-by: Icenowy Zheng <icenowy@aosc.io>
+
+--git diff--
+diff --git i/arch/arm/boot/dts/suniv-f1c100s-licheepi-nano-with-lcd.dts w/arch/arm/boot/dts/suniv-f1c100s-licheepi-nano-with-lcd.dts
+index 9da55cb..6753c72 100644
+--- i/arch/arm/boot/dts/suniv-f1c100s-licheepi-nano-with-lcd.dts
++++ w/arch/arm/boot/dts/suniv-f1c100s-licheepi-nano-with-lcd.dts
+@@ -8,9 +8,10 @@
+ 
+ / {
+ 	panel: panel {
+-		compatible = "urt,umsh-8596md-t", "simple-panel";
++		compatible = "qiaodian,qd43003c0-40", "simple-panel";
+ 		#address-cells = <1>;
+ 		#size-cells = <0>;
++		enable-gpios = <&pio 4 6 GPIO_ACTIVE_HIGH>;
+ 
+ 		port@0 {
+ 			reg = <0>;
+diff --git i/arch/arm/boot/dts/suniv-f1c100s-licheepi-nano.dts w/arch/arm/boot/dts/suniv-f1c100s-licheepi-nano.dts
+index db49bb7..c10d802 100644
+--- i/arch/arm/boot/dts/suniv-f1c100s-licheepi-nano.dts
++++ w/arch/arm/boot/dts/suniv-f1c100s-licheepi-nano.dts
+@@ -24,8 +24,17 @@
+ 		stdout-path = "serial0:115200n8";
+ 	};
+ 
++	reg_vcc3v3: vcc3v3 {
++		compatible = "regulator-fixed";
++		regulator-name = "vcc3v3";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++	};
++
+ 	panel: panel {
+-		compatible = "qiaodian,qd43003c0-40","simple-panel";
++		compatible = "qiaodian,qd43003c0-40", "simple-panel";
++		/* compatible = "lg,lb070wv8", "simple-panel"; */
++		/* compatible = "sharp,lq043t1dg04", "simple-panel"; */
+ 		#address-cells = <1>;
+ 		#size-cells = <0>;
+ 		enable-gpios = <&pio 4 6 GPIO_ACTIVE_HIGH>;
+@@ -42,63 +51,82 @@
+ 		};
+ 	};
+ 
+-	reg_vcc3v3: vcc3v3 {
+-		compatible = "regulator-fixed";
+-		regulator-name = "vcc3v3";
+-		regulator-min-microvolt = <3300000>;
+-		regulator-max-microvolt = <3300000>;
+-	};
+-
+ 	leds {
+ 		compatible = "gpio-leds";
+ 
++			// blue_led {
++			// 	label = "licheepi:blue:usr";
++			// 	gpios = <&pio 4 4 GPIO_ACTIVE_LOW>; /* PE4 */
++			// 	linux,default-trigger = "disk-activity";
++			// };
++
+ 			blue_led {
+ 				label = "licheepi:blue:usr";
+-				gpios = <&pio 4 4 GPIO_ACTIVE_LOW>; /* PE4 */
+-			};
+-
+-			green_led {
+-				label = "licheepi:green:usr";
+ 				gpios = <&pio 4 5 GPIO_ACTIVE_LOW>; /* PE5 */
+-				default-state = "on";
++				linux,default-trigger = "heartbeat";
+ 			};
+ 
+-			red_led {
+-				label = "licheepi:red:usr";
+-				gpios = <&pio 5 6 GPIO_ACTIVE_LOW>; /* PE6 */
+-			};
+ 	};
++
++	
+ };
+ 
+ &de {
+ 	status = "okay";
+ };
+ 
+-&mmc0 {
+-	vmmc-supply = <&reg_vcc3v3>;
+-	bus-width = <4>;
+-	broken-cd;
+-	status = "okay";
+-};
+-
+-&otg_sram {
+-	status = "okay";
+-};
+-
+ &spi0 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&spi0_pins_a>;
+ 	status = "okay";
+-
+-	flash@0 {
++	spi-max-frequency = <50000000>;
++	flash: w25q128@0 {
+ 		#address-cells = <1>;
+ 		#size-cells = <1>;
+ 		compatible = "winbond,w25q128", "jedec,spi-nor";
+ 		reg = <0>;
+-		spi-max-frequency = <40000000>;
++		spi-max-frequency = <50000000>;
++		partitions {
++			compatible = "fixed-partitions";
++			#address-cells = <1>;
++			#size-cells = <1>;
++
++			partition@0 {
++				label = "u-boot";
++				reg = <0x000000 0x100000>;
++			};
++
++			partition@100000 {
++				label = "dtb";
++				reg = <0x100000 0x10000>;
++			};
++
++			partition@110000 {
++				label = "kernel";
++				reg = <0x110000 0x400000>;
++			};
++
++			partition@510000 {
++				label = "rootfs";
++				reg = <0x510000 0xAF0000>;
++			};
++		};
+ 	};
+ };
+ 
++&uart0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&uart0_pins_a>;
++	status = "okay";
++};
++
++&mmc0 {
++	vmmc-supply = <&reg_vcc3v3>;
++	bus-width = <4>;
++	broken-cd;
++	status = "okay";
++};
++
+ &tcon0 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&lcd_rgb666_pins>;
+@@ -112,60 +140,66 @@
+ 	};
+ };
+ 
+-&uart0 {
+-	pinctrl-names = "default";
+-	pinctrl-0 = <&uart0_pins_a>;
+-	status = "okay";
+-};
+-
+ &i2c0 {
+ 	pinctrl-0 = <&i2c0_pins>;
+ 	pinctrl-names = "default";
+ 	status = "okay";
+ 
+-	gt911: touchscreen@14 {
++	gt911: touchscreen@5d {
+ 		compatible = "goodix,gt911";
+-		reg = <0x14>;
++		reg = <0x5d>;
+ 		interrupt-parent = <&pio>;
+-		interrupts = <4 10 IRQ_TYPE_EDGE_FALLING>; /* EINT21 (PH21) */
++		interrupts = <4 3 IRQ_TYPE_EDGE_FALLING>;
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&ts_reset_pin>;
+-		irq-gpios = <&pio 4 10 GPIO_ACTIVE_HIGH>; /* INT (PH21) */
+-		reset-gpios = <&pio 4 9 GPIO_ACTIVE_HIGH>; /* RST (PB13) */
+-		touchscreen-swapped-x-y;
++		irq-gpios = <&pio 4 3 GPIO_ACTIVE_HIGH>; /* INT */
++		reset-gpios = <&pio 4 4 GPIO_ACTIVE_HIGH>; /* RST */
++		/* touchscreen-swapped-x-y; */
+ 	};
+ };
+ 
+-
+ &pio {
+         gt911_int_pin: gt911_int_pin@0 {
+-                pins = "PE10";
++                pins = "PE3";
+                 function = "gpio_in";
+         };
+ 
+-	ts_reset_pin: ts_reset_pin@0 {
+-		pins = "PE9";
+-		function = "gpio_out";
+-	};
++		ts_reset_pin: ts_reset_pin@0 {
++			pins = "PE4";
++			function = "gpio_out";
++		};
+ };
+ 
+-&usb_otg {
+-	dr_mode = "otg";
++&lradc {
++	vref-supply = <&reg_vcc3v3>;
+ 	status = "okay";
+-};
+ 
++	button@200 {
++		label = "Volume Up";
++		linux,code = <KEY_VOLUMEUP>;
++		channel = <0>;
++		voltage = <200000>;
++	};
+ 
+-&usbphy {
+-	usb0_id_det-gpio = <&pio 4 2 GPIO_ACTIVE_HIGH>; /* PE2 */
+-	status = "okay";
+-};
++	button@400 {
++		label = "Volume Down";
++		linux,code = <KEY_VOLUMEDOWN>;
++		channel = <0>;
++		voltage = <400000>;
++	};
+ 
+-&codec {
+-	allwinner,audio-routing =
+-				"Headphone", "HP",
+-				"Headphone", "HPCOM",
+-				"MIC1", "Mic",
+-				"Mic",  "HBIAS";
+-	status = "okay";
++	button@600 {
++		label = "Select";
++		linux,code = <KEY_SELECT>;
++		channel = <0>;
++		voltage = <600000>;
++	};
++
++	button@800 {
++		label = "Start";
++		linux,code = <KEY_OK>;
++		channel = <0>;
++		voltage = <800000>;
++	};
+ };
+ 
+diff --git i/arch/arm/boot/dts/suniv.dtsi w/arch/arm/boot/dts/suniv.dtsi
+index 64f8959..c596f59 100644
+--- i/arch/arm/boot/dts/suniv.dtsi
++++ w/arch/arm/boot/dts/suniv.dtsi
+@@ -77,7 +77,8 @@
+ 		};
+ 
+ 		dma: dma-controller@1c02000 {
+-			compatible = "allwinner,sun4i-a10-dma";
++			//compatible = "allwinner,sun4i-a10-dma";
++			compatible = "allwinner,sun6i-a31-dma";
+ 			reg = <0x01c02000 0x1000>;
+ 			interrupts = <18>;
+ 			clocks = <&ccu CLK_BUS_DMA>;
+@@ -86,8 +87,7 @@
+ 		};
+ 
+ 		spi0: spi@1c05000 {
+-			compatible = "allwinner,suniv-f1c100s-spi",
+-				     "allwinner,sun8i-h3-spi";
++			compatible = "allwinner,sun8i-h3-spi";
+ 			reg = <0x01c05000 0x1000>;
+ 			interrupts = <10>;
+ 			clocks = <&ccu CLK_BUS_SPI0>, <&ccu CLK_BUS_SPI0>;
+@@ -112,8 +112,7 @@
+ 		};
+ 
+ 		spi1: spi@1c06000 {
+-			compatible = "allwinner,suniv-f1c100s-spi",
+-				     "allwinner,sun8i-h3-spi";
++			compatible = "allwinner,sun8i-h3-spi";
+ 			reg = <0x01c06000 0x1000>;
+ 			interrupts = <11>;
+ 			clocks = <&ccu CLK_BUS_SPI1>, <&ccu CLK_BUS_SPI1>;
+@@ -415,5 +414,12 @@
+ 			       <&dma SUN4I_DMA_NORMAL 12>;
+ 			dma-names = "rx", "tx";
+ 		};
++
++		lradc: lradc@1C23400 {
++			compatible = "allwinner,sun4i-a10-lradc-keys";
++			reg = <0x01C23400 0x10>;
++			interrupts = <22>;
++			status = "disabled";
++		};
+ 	};
+ };
+diff --git i/arch/arm/kernel/reboot.c w/arch/arm/kernel/reboot.c
+index 3b2aa9a..127becb 100644
+--- i/arch/arm/kernel/reboot.c
++++ w/arch/arm/kernel/reboot.c
+@@ -140,8 +140,9 @@ void machine_restart(char *cmd)
+ {
+ 	local_irq_disable();
+ 	smp_send_stop();
+-
++	printk("arm_pm_restart : %d",(bool)arm_pm_restart);
+ 	if (arm_pm_restart)
++		
+ 		arm_pm_restart(reboot_mode, cmd);
+ 	else
+ 		do_kernel_restart(cmd);
+diff --git i/drivers/gpu/drm/panel/panel-simple.c w/drivers/gpu/drm/panel/panel-simple.c
+index 5591984..029184b 100644
+--- i/drivers/gpu/drm/panel/panel-simple.c
++++ w/drivers/gpu/drm/panel/panel-simple.c
+@@ -1246,7 +1246,7 @@ static const struct drm_display_mode lg_lb070wv8_mode = {
+ 	.hdisplay = 800,
+ 	.hsync_start = 800 + 88,
+ 	.hsync_end = 800 + 88 + 80,
+-	.htotal = 800 + 88 + 80 + 88,
++	.htotal = 800 + 88 + 80 + 88, 
+ 	.vdisplay = 480,
+ 	.vsync_start = 480 + 10,
+ 	.vsync_end = 480 + 10 + 25,
+@@ -1794,6 +1794,30 @@ static const struct panel_desc sharp_lq150x1lg11 = {
+ 	.bus_format = MEDIA_BUS_FMT_RGB565_1X16,
+ };
+ 
++static const struct drm_display_mode sharp_lq043t1dg04_mode = {
++	.clock = 8540,
++	.hdisplay = 480,
++	.hsync_start = 480 + 16,
++	.hsync_end = 480 + 16 + 6,
++	.htotal = 480 + 16 + 6 +10,
++	.vdisplay = 272,
++	.vsync_start = 272 + 2,
++	.vsync_end = 272 + 2 + 1,
++	.vtotal = 272 + 2 + 1 + 3,
++	.vrefresh = 60,
++};
++
++static const struct panel_desc sharp_lq043t1dg04 = {
++	.modes = &sharp_lq043t1dg04_mode,
++	.num_modes = 1,
++	.bpc = 8,
++	.size = {
++		.width = 95,
++		.height = 53,
++	},
++	.bus_format = MEDIA_BUS_FMT_RGB888_1X24,
++};
++
+ static const struct drm_display_mode shelly_sca07010_bfn_lnn_mode = {
+ 	.clock = 33300,
+ 	.hdisplay = 800,
+@@ -2193,6 +2217,9 @@ static const struct of_device_id platform_of_match[] = {
+ 		.compatible = "sharp,lq150x1lg11",
+ 		.data = &sharp_lq150x1lg11,
+ 	}, {
++		.compatible = "sharp,lq043t1dg04",
++		.data = &sharp_lq043t1dg04,
++	}, {
+ 		.compatible = "shelly,sca07010-bfn-lnn",
+ 		.data = &shelly_sca07010_bfn_lnn,
+ 	}, {
+diff --git i/drivers/mtd/cmdlinepart.c w/drivers/mtd/cmdlinepart.c
+index fbd5aff..e3f3be9 100644
+--- i/drivers/mtd/cmdlinepart.c
++++ w/drivers/mtd/cmdlinepart.c
+@@ -204,7 +204,9 @@ static struct mtd_partition * newpart(char *s,
+ 	dbg(("partition %d: name <%s>, offset %llx, size %llx, mask flags %x\n",
+ 	     this_part, parts[this_part].name, parts[this_part].offset,
+ 	     parts[this_part].size, parts[this_part].mask_flags));
+-
++	printk("partition %d: name <%s>, offset %llx, size %llx, mask flags %x\n",
++	     this_part, parts[this_part].name, parts[this_part].offset,
++	     parts[this_part].size, parts[this_part].mask_flags);
+ 	/* return (updated) pointer to extra_mem memory */
+ 	if (extra_mem_ptr)
+ 		*extra_mem_ptr = extra_mem;
+@@ -242,6 +244,8 @@ static int mtdpart_setup_real(char *s)
+ 
+ 		dbg(("parsing <%s>\n", p+1));
+ 
++		printk("parsing <%s>\n", p+1);
++
+ 		/*
+ 		 * parse one mtd. have it reserve memory for the
+ 		 * struct cmdline_mtd_partition and the mtd-id string.
+diff --git i/drivers/mtd/devices/m25p80.c w/drivers/mtd/devices/m25p80.c
+index a4e18f6..79e6b20 100644
+--- i/drivers/mtd/devices/m25p80.c
++++ w/drivers/mtd/devices/m25p80.c
+@@ -27,11 +27,12 @@
+ #include <linux/spi/flash.h>
+ #include <linux/mtd/spi-nor.h>
+ 
+-#define	MAX_CMD_SIZE		6
+-struct m25p {
+-	struct spi_device	*spi;
+-	struct spi_nor		spi_nor;
+-	u8			command[MAX_CMD_SIZE];
++#define MAX_CMD_SIZE 6
++struct m25p
++{
++	struct spi_device *spi;
++	struct spi_nor spi_nor;
++	u8 command[MAX_CMD_SIZE];
+ };
+ 
+ static int m25p80_read_reg(struct spi_nor *nor, u8 code, u8 *val, int len)
+@@ -50,7 +51,7 @@ static int m25p80_read_reg(struct spi_nor *nor, u8 code, u8 *val, int len)
+ static void m25p_addr2cmd(struct spi_nor *nor, unsigned int addr, u8 *cmd)
+ {
+ 	/* opcode is in cmd[0] */
+-	cmd[1] = addr >> (nor->addr_width * 8 -  8);
++	cmd[1] = addr >> (nor->addr_width * 8 - 8);
+ 	cmd[2] = addr >> (nor->addr_width * 8 - 16);
+ 	cmd[3] = addr >> (nor->addr_width * 8 - 24);
+ 	cmd[4] = addr >> (nor->addr_width * 8 - 32);
+@@ -74,7 +75,7 @@ static int m25p80_write_reg(struct spi_nor *nor, u8 opcode, u8 *buf, int len)
+ }
+ 
+ static ssize_t m25p80_write(struct spi_nor *nor, loff_t to, size_t len,
+-			    const u_char *buf)
++							const u_char *buf)
+ {
+ 	struct m25p *flash = nor->priv;
+ 	struct spi_device *spi = flash->spi;
+@@ -104,7 +105,8 @@ static ssize_t m25p80_write(struct spi_nor *nor, loff_t to, size_t len,
+ 
+ 	/* split the op code and address bytes into two transfers if needed. */
+ 	data_idx = 1;
+-	if (addr_nbits != inst_nbits) {
++	if (addr_nbits != inst_nbits)
++	{
+ 		t[0].len = 1;
+ 
+ 		t[1].tx_buf = &flash->command[1];
+@@ -135,7 +137,7 @@ static ssize_t m25p80_write(struct spi_nor *nor, loff_t to, size_t len,
+  * may be any size provided it is within the physical boundaries.
+  */
+ static ssize_t m25p80_read(struct spi_nor *nor, loff_t from, size_t len,
+-			   u_char *buf)
++						   u_char *buf)
+ {
+ 	struct m25p *flash = nor->priv;
+ 	struct spi_device *spi = flash->spi;
+@@ -154,7 +156,8 @@ static ssize_t m25p80_read(struct spi_nor *nor, loff_t from, size_t len,
+ 	/* convert the dummy cycles to the number of bytes */
+ 	dummy = (dummy * addr_nbits) / 8;
+ 
+-	if (spi_flash_read_supported(spi)) {
++	if (spi_flash_read_supported(spi))
++	{
+ 		struct spi_flash_read_message msg;
+ 
+ 		memset(&msg, 0, sizeof(msg));
+@@ -199,7 +202,8 @@ static ssize_t m25p80_read(struct spi_nor *nor, loff_t from, size_t len,
+ 
+ 	/* split the op code and address bytes into two transfers if needed. */
+ 	data_idx = 1;
+-	if (addr_nbits != inst_nbits) {
++	if (addr_nbits != inst_nbits)
++	{
+ 		t[0].len = 1;
+ 
+ 		t[1].tx_buf = &flash->command[1];
+@@ -213,7 +217,7 @@ static ssize_t m25p80_read(struct spi_nor *nor, loff_t from, size_t len,
+ 	t[data_idx].rx_buf = buf;
+ 	t[data_idx].rx_nbits = data_nbits;
+ 	t[data_idx].len = min3(len, spi_max_transfer_size(spi),
+-			       spi_max_message_size(spi) - cmd_sz);
++						   spi_max_message_size(spi) - cmd_sz);
+ 	spi_message_add_tail(&t[data_idx], &m);
+ 
+ 	ret = spi_sync(spi, &m);
+@@ -233,13 +237,13 @@ static ssize_t m25p80_read(struct spi_nor *nor, loff_t from, size_t len,
+  */
+ static int m25p_probe(struct spi_device *spi)
+ {
+-	struct flash_platform_data	*data;
++	struct flash_platform_data *data;
+ 	struct m25p *flash;
+ 	struct spi_nor *nor;
+ 	struct spi_nor_hwcaps hwcaps = {
+ 		.mask = SNOR_HWCAPS_READ |
+-			SNOR_HWCAPS_READ_FAST |
+-			SNOR_HWCAPS_PP,
++				SNOR_HWCAPS_READ_FAST |
++				SNOR_HWCAPS_PP,
+ 	};
+ 	char *flash_name;
+ 	int ret;
+@@ -265,14 +269,17 @@ static int m25p_probe(struct spi_device *spi)
+ 	spi_set_drvdata(spi, flash);
+ 	flash->spi = spi;
+ 
+-	if (spi->mode & SPI_RX_QUAD) {
++	if (spi->mode & SPI_RX_QUAD)
++	{
+ 		hwcaps.mask |= SNOR_HWCAPS_READ_1_1_4;
+ 
+ 		if (spi->mode & SPI_TX_QUAD)
+ 			hwcaps.mask |= (SNOR_HWCAPS_READ_1_4_4 |
+-					SNOR_HWCAPS_PP_1_1_4 |
+-					SNOR_HWCAPS_PP_1_4_4);
+-	} else if (spi->mode & SPI_RX_DUAL) {
++							SNOR_HWCAPS_PP_1_1_4 |
++							SNOR_HWCAPS_PP_1_4_4);
++	}
++	else if (spi->mode & SPI_RX_DUAL)
++	{
+ 		hwcaps.mask |= SNOR_HWCAPS_READ_1_1_2;
+ 
+ 		if (spi->mode & SPI_TX_DUAL)
+@@ -299,13 +306,12 @@ static int m25p_probe(struct spi_device *spi)
+ 		return ret;
+ 
+ 	return mtd_device_register(&nor->mtd, data ? data->parts : NULL,
+-				   data ? data->nr_parts : 0);
++							   data ? data->nr_parts : 0);
+ }
+ 
+-
+ static int m25p_remove(struct spi_device *spi)
+ {
+-	struct m25p	*flash = spi_get_drvdata(spi);
++	struct m25p *flash = spi_get_drvdata(spi);
+ 
+ 	spi_nor_restore(&flash->spi_nor);
+ 
+@@ -318,6 +324,15 @@ static void m25p_shutdown(struct spi_device *spi)
+ 	struct m25p *flash = spi_get_drvdata(spi);
+ 
+ 	spi_nor_restore(&flash->spi_nor);
++	/*struct m25p *flash = spi_get_drvdata(spi);
++	struct spi_nor nor = flash->spi_nor;
++	int status;
++	//add to exit 4-byte address mode
++	nor.write_reg(&nor, SPINOR_OP_WREN, NULL, 0);
++	status = nor.write_reg(&nor, SPINOR_OP_EX4B, NULL, 0);
++	printk("remove spi flash!\n");
++	mtd_device_unregister(&flash->spi_nor.mtd);
++	return;*/
+ }
+ /*
+  * Do NOT add to this array without reading the following:
+@@ -343,36 +358,69 @@ static const struct spi_device_id m25p_ids[] = {
+ 	 * Entries not used in DTs that should be safe to drop after replacing
+ 	 * them with "spi-nor" in platform data.
+ 	 */
+-	{"s25sl064a"},	{"w25x16"},	{"m25p10"},	{"m25px64"},
++	{"s25sl064a"},
++	{"w25x16"},
++	{"m25p10"},
++	{"m25px64"},
+ 
+ 	/*
+ 	 * Entries that were used in DTs without "jedec,spi-nor" fallback and
+ 	 * should be kept for backward compatibility.
+ 	 */
+-	{"at25df321a"},	{"at25df641"},	{"at26df081a"},
+-	{"mx25l4005a"},	{"mx25l1606e"},	{"mx25l6405d"},	{"mx25l12805d"},
+-	{"mx25l25635e"},{"mx66l51235l"},
+-	{"n25q064"},	{"n25q128a11"},	{"n25q128a13"},	{"n25q512a"},
+-	{"s25fl256s1"},	{"s25fl512s"},	{"s25sl12801"},	{"s25fl008k"},
++	{"at25df321a"},
++	{"at25df641"},
++	{"at26df081a"},
++	{"mx25l4005a"},
++	{"mx25l1606e"},
++	{"mx25l6405d"},
++	{"mx25l12805d"},
++	{"mx25l25635e"},
++	{"mx66l51235l"},
++	{"n25q064"},
++	{"n25q128a11"},
++	{"n25q128a13"},
++	{"n25q512a"},
++	{"s25fl256s1"},
++	{"s25fl512s"},
++	{"s25sl12801"},
++	{"s25fl008k"},
+ 	{"s25fl064k"},
+-	{"sst25vf040b"},{"sst25vf016b"},{"sst25vf032b"},{"sst25wf040"},
+-	{"m25p40"},	{"m25p80"},	{"m25p16"},	{"m25p32"},
+-	{"m25p64"},	{"m25p128"},
+-	{"w25x80"},	{"w25x32"},	{"w25q32"},	{"w25q32dw"},
+-	{"w25q80bl"},	{"w25q128"},	{"w25q256"},
++	{"sst25vf040b"},
++	{"sst25vf016b"},
++	{"sst25vf032b"},
++	{"sst25wf040"},
++	{"m25p40"},
++	{"m25p80"},
++	{"m25p16"},
++	{"m25p32"},
++	{"m25p64"},
++	{"m25p128"},
++	{"w25x80"},
++	{"w25x32"},
++	{"w25q32"},
++	{"w25q32dw"},
++	{"w25q80bl"},
++	{"w25q128"},
++	{"w25q256"},
+ 
+ 	/* Flashes that can't be detected using JEDEC */
+-	{"m25p05-nonjedec"},	{"m25p10-nonjedec"},	{"m25p20-nonjedec"},
+-	{"m25p40-nonjedec"},	{"m25p80-nonjedec"},	{"m25p16-nonjedec"},
+-	{"m25p32-nonjedec"},	{"m25p64-nonjedec"},	{"m25p128-nonjedec"},
++	{"m25p05-nonjedec"},
++	{"m25p10-nonjedec"},
++	{"m25p20-nonjedec"},
++	{"m25p40-nonjedec"},
++	{"m25p80-nonjedec"},
++	{"m25p16-nonjedec"},
++	{"m25p32-nonjedec"},
++	{"m25p64-nonjedec"},
++	{"m25p128-nonjedec"},
+ 
+ 	/* Everspin MRAMs (non-JEDEC) */
+-	{ "mr25h128" }, /* 128 Kib, 40 MHz */
+-	{ "mr25h256" }, /* 256 Kib, 40 MHz */
+-	{ "mr25h10" },  /*   1 Mib, 40 MHz */
+-	{ "mr25h40" },  /*   4 Mib, 40 MHz */
++	{"mr25h128"}, /* 128 Kib, 40 MHz */
++	{"mr25h256"}, /* 256 Kib, 40 MHz */
++	{"mr25h10"},  /*   1 Mib, 40 MHz */
++	{"mr25h40"},  /*   4 Mib, 40 MHz */
+ 
+-	{ },
++	{},
+ };
+ MODULE_DEVICE_TABLE(spi, m25p_ids);
+ 
+@@ -381,20 +429,19 @@ static const struct of_device_id m25p_of_table[] = {
+ 	 * Generic compatibility for SPI NOR that can be identified by the
+ 	 * JEDEC READ ID opcode (0x9F). Use this, if possible.
+ 	 */
+-	{ .compatible = "jedec,spi-nor" },
+-	{}
+-};
++	{.compatible = "jedec,spi-nor"},
++	{}};
+ MODULE_DEVICE_TABLE(of, m25p_of_table);
+ 
+ static struct spi_driver m25p80_driver = {
+ 	.driver = {
+-		.name	= "m25p80",
++		.name = "m25p80",
+ 		.of_match_table = m25p_of_table,
+ 	},
+-	.id_table	= m25p_ids,
+-	.probe	= m25p_probe,
+-	.remove	= m25p_remove,
+-	.shutdown	= m25p_shutdown,
++	.id_table = m25p_ids,
++	.probe = m25p_probe,
++	.remove = m25p_remove,
++	.shutdown = m25p_shutdown,
+ 
+ 	/* REVISIT: many of these chips have deep power-down modes, which
+ 	 * should clearly be entered on suspend() to minimize power use.
+diff --git i/drivers/mtd/mtdpart.c w/drivers/mtd/mtdpart.c
+index 76cd21d..c802c95 100644
+--- i/drivers/mtd/mtdpart.c
++++ w/drivers/mtd/mtdpart.c
+@@ -847,7 +847,7 @@ static int mtd_part_do_parse(struct mtd_part_parser *parser,
+ 	int ret;
+ 
+ 	ret = (*parser->parse_fn)(master, &pparts->parts, data);
+-	pr_debug("%s: parser %s: %i\n", master->name, parser->name, ret);
++	printk("%s: parser %s: %i\n", master->name, parser->name, ret);
+ 	if (ret <= 0)
+ 		return ret;
+ 
+@@ -892,11 +892,11 @@ int parse_mtd_partitions(struct mtd_info *master, const char *const *types,
+ 		types = default_mtd_part_types;
+ 
+ 	for ( ; *types; types++) {
+-		pr_debug("%s: parsing partitions %s\n", master->name, *types);
++		printk("%s: parsing partitions %s\n", master->name, *types);
+ 		parser = mtd_part_parser_get(*types);
+ 		if (!parser && !request_module("%s", *types))
+ 			parser = mtd_part_parser_get(*types);
+-		pr_debug("%s: got parser %s\n", master->name,
++		printk("%s: got parser %s\n", master->name,
+ 			 parser ? parser->name : NULL);
+ 		if (!parser)
+ 			continue;
+diff --git i/drivers/staging/Kconfig w/drivers/staging/Kconfig
+index e95ab68..81ce449 100644
+--- i/drivers/staging/Kconfig
++++ w/drivers/staging/Kconfig
+@@ -122,4 +122,6 @@ source "drivers/staging/vboxvideo/Kconfig"
+ 
+ source "drivers/staging/pi433/Kconfig"
+ 
++source "drivers/staging/esp8089/Kconfig"
++
+ endif # STAGING
+diff --git i/drivers/staging/Makefile w/drivers/staging/Makefile
+index af8cd6a..b6bee33 100644
+--- i/drivers/staging/Makefile
++++ w/drivers/staging/Makefile
+@@ -52,3 +52,4 @@ obj-$(CONFIG_BCM2835_VCHIQ)	+= vc04_services/
+ obj-$(CONFIG_CRYPTO_DEV_CCREE)	+= ccree/
+ obj-$(CONFIG_DRM_VBOXVIDEO)	+= vboxvideo/
+ obj-$(CONFIG_PI433)		+= pi433/
++obj-$(CONFIG_ESP8089)           += esp8089/
+diff --git i/fs/jffs2/background.c w/fs/jffs2/background.c
+index 453a6a1..5074f2e 100644
+--- i/fs/jffs2/background.c
++++ w/fs/jffs2/background.c
+@@ -88,6 +88,7 @@ static int jffs2_garbage_collect_thread(void *_c)
+ 	set_user_nice(current, 10);
+ 
+ 	set_freezable();
++
+ 	for (;;) {
+ 		sigprocmask(SIG_UNBLOCK, &hupmask, NULL);
+ 	again:
+@@ -100,6 +101,7 @@ static int jffs2_garbage_collect_thread(void *_c)
+ 		} else {
+ 			spin_unlock(&c->erase_completion_lock);
+ 		}
++
+ 		/* Problem - immediately after bootup, the GCD spends a lot
+ 		 * of time in places like jffs2_kill_fragtree(); so much so
+ 		 * that userspace processes (like gdm and X) are starved
+@@ -111,7 +113,6 @@ static int jffs2_garbage_collect_thread(void *_c)
+ 		 * inode in with read_inode() is much preferable to having
+ 		 * the GC thread get there first. */
+ 		schedule_timeout_interruptible(msecs_to_jiffies(50));
+-
+ 		if (kthread_should_stop()) {
+ 			jffs2_dbg(1, "%s(): kthread_stop() called\n", __func__);
+ 			goto die;
+@@ -150,7 +151,6 @@ static int jffs2_garbage_collect_thread(void *_c)
+ 		}
+ 		/* We don't want SIGHUP to interrupt us. STOP and KILL are OK though. */
+ 		sigprocmask(SIG_BLOCK, &hupmask, NULL);
+-
+ 		jffs2_dbg(1, "%s(): pass\n", __func__);
+ 		if (jffs2_garbage_collect_pass(c) == -ENOSPC) {
+ 			pr_notice("No space for garbage collection. Aborting GC thread\n");
+diff --git i/fs/jffs2/scan.c w/fs/jffs2/scan.c
+index 90431dd..f84427a 100644
+--- i/fs/jffs2/scan.c
++++ w/fs/jffs2/scan.c
+@@ -607,7 +607,6 @@ static int jffs2_scan_eraseblock (struct jffs2_sb_info *c, struct jffs2_eraseblo
+ 
+ scan_more:
+ 	while(ofs < jeb->offset + c->sector_size) {
+-
+ 		jffs2_dbg_acct_paranoia_check_nolock(c, jeb);
+ 
+ 		/* Make sure there are node refs available for use */
+@@ -681,7 +680,8 @@ static int jffs2_scan_eraseblock (struct jffs2_sb_info *c, struct jffs2_eraseblo
+ 			/* Ran off end. */
+ 			jffs2_dbg(1, "Empty flash to end of buffer at 0x%08x\n",
+ 				  ofs);
+-
++			
++			// printk("Empty flash to end of buffer at 0x%08x\n",ofs);
+ 			/* If we're only checking the beginning of a block with a cleanmarker,
+ 			   bail now */
+ 			if (buf_ofs == jeb->offset && jeb->used_size == PAD(c->cleanmarker_size) &&
+@@ -989,7 +989,6 @@ static int jffs2_scan_inode_node(struct jffs2_sb_info *c, struct jffs2_erasebloc
+ 	uint32_t crc, ino = je32_to_cpu(ri->ino);
+ 
+ 	jffs2_dbg(1, "%s(): Node at 0x%08x\n", __func__, ofs);
+-
+ 	/* We do very little here now. Just check the ino# to which we should attribute
+ 	   this node; we can do all the CRC checking etc. later. There's a tradeoff here --
+ 	   we used to scan the flash once only, reading everything we want from it into
+diff --git i/out/lib/modules/4.15.0-next-20180202-licheepi-nano+/build w/out/lib/modules/4.15.0-next-20180202-licheepi-nano+/build
+index 4c9d283..7baac65 120000
+--- i/out/lib/modules/4.15.0-next-20180202-licheepi-nano+/build
++++ w/out/lib/modules/4.15.0-next-20180202-licheepi-nano+/build
+@@ -1 +1 @@
+-/home/biglion/project/TTEEEESSSSST/linux-f1c100s
+\ No newline at end of file
++/home/biglion/project/sipeed/TTEEEESSSSST/linux-f1c100s
+\ No newline at end of file
+diff --git i/out/lib/modules/4.15.0-next-20180202-licheepi-nano+/modules.alias w/out/lib/modules/4.15.0-next-20180202-licheepi-nano+/modules.alias
+index eabd017..9e81cfa 100644
+--- i/out/lib/modules/4.15.0-next-20180202-licheepi-nano+/modules.alias
++++ w/out/lib/modules/4.15.0-next-20180202-licheepi-nano+/modules.alias
+@@ -1,12 +1,6 @@
+ # Aliases extracted from modules themselves.
+ alias crypto-echainiv echainiv
+ alias echainiv echainiv
+-alias usb:v0586p401Ad*dc*dsc*dp*ic*isc*ip*in* rtl8150
+-alias usb:v1557p8150d*dc*dsc*dp*ic*isc*ip*in* rtl8150
+-alias usb:v07B8p401Ad*dc*dsc*dp*ic*isc*ip*in* rtl8150
+-alias usb:v3980p0003d*dc*dsc*dp*ic*isc*ip*in* rtl8150
+-alias usb:v0411p0012d*dc*dsc*dp*ic*isc*ip*in* rtl8150
+-alias usb:v0BDAp8150d*dc*dsc*dp*ic*isc*ip*in* rtl8150
+ alias i2c:GDIX1001:00 goodix
+ alias of:N*T*Cgoodix,gt967C* goodix
+ alias of:N*T*Cgoodix,gt967 goodix
+@@ -24,23 +18,3 @@ alias of:N*T*Cgoodix,gt911C* goodix
+ alias of:N*T*Cgoodix,gt911 goodix
+ alias of:N*T*Cgoodix,gt1151C* goodix
+ alias of:N*T*Cgoodix,gt1151 goodix
+-alias sdio:c*v024CdB723* r8723bs
+-alias sdio:c*v024Cd0626* r8723bs
+-alias sdio:c*v024Cd0623* r8723bs
+-alias sdio:c*v024Cd0523* r8723bs
+-alias acpi*:OBDA8723:* r8723bs
+-alias of:N*T*Callwinner,sun8i-h3-i2sC* sun4i_i2s
+-alias of:N*T*Callwinner,sun8i-h3-i2s sun4i_i2s
+-alias of:N*T*Callwinner,sun8i-a83t-i2sC* sun4i_i2s
+-alias of:N*T*Callwinner,sun8i-a83t-i2s sun4i_i2s
+-alias of:N*T*Callwinner,sun6i-a31-i2sC* sun4i_i2s
+-alias of:N*T*Callwinner,sun6i-a31-i2s sun4i_i2s
+-alias of:N*T*Callwinner,sun4i-a10-i2sC* sun4i_i2s
+-alias of:N*T*Callwinner,sun4i-a10-i2s sun4i_i2s
+-alias platform:sun4i-spdif sun4i_spdif
+-alias of:N*T*Callwinner,sun8i-h3-spdifC* sun4i_spdif
+-alias of:N*T*Callwinner,sun8i-h3-spdif sun4i_spdif
+-alias of:N*T*Callwinner,sun6i-a31-spdifC* sun4i_spdif
+-alias of:N*T*Callwinner,sun6i-a31-spdif sun4i_spdif
+-alias of:N*T*Callwinner,sun4i-a10-spdifC* sun4i_spdif
+-alias of:N*T*Callwinner,sun4i-a10-spdif sun4i_spdif
+diff --git i/out/lib/modules/4.15.0-next-20180202-licheepi-nano+/modules.dep w/out/lib/modules/4.15.0-next-20180202-licheepi-nano+/modules.dep
+index 145ee1d..c004551 100644
+--- i/out/lib/modules/4.15.0-next-20180202-licheepi-nano+/modules.dep
++++ w/out/lib/modules/4.15.0-next-20180202-licheepi-nano+/modules.dep
+@@ -1,10 +1,3 @@
+ kernel/crypto/echainiv.ko:
+ kernel/drivers/video/backlight/lcd.ko:
+-kernel/drivers/net/mii.ko:
+-kernel/drivers/net/usb/rtl8150.ko:
+-kernel/drivers/usb/mon/usbmon.ko:
+ kernel/drivers/input/touchscreen/goodix.ko:
+-kernel/drivers/staging/rtl8723bs/r8723bs.ko:
+-kernel/sound/drivers/snd-aloop.ko:
+-kernel/sound/soc/sunxi/sun4i-i2s.ko:
+-kernel/sound/soc/sunxi/sun4i-spdif.ko:
+diff --git i/out/lib/modules/4.15.0-next-20180202-licheepi-nano+/modules.symbols w/out/lib/modules/4.15.0-next-20180202-licheepi-nano+/modules.symbols
+index 0a2eb69..cfbbf59 100644
+--- i/out/lib/modules/4.15.0-next-20180202-licheepi-nano+/modules.symbols
++++ w/out/lib/modules/4.15.0-next-20180202-licheepi-nano+/modules.symbols
+@@ -1,15 +1,5 @@
+ # Aliases for symbols, used by symbol_request().
+-alias symbol:mii_ethtool_sset mii
+-alias symbol:mii_check_gmii_support mii
+ alias symbol:lcd_device_register lcd
+-alias symbol:mii_nway_restart mii
+-alias symbol:mii_ethtool_set_link_ksettings mii
+-alias symbol:mii_link_ok mii
+-alias symbol:mii_ethtool_gset mii
+ alias symbol:lcd_device_unregister lcd
+ alias symbol:devm_lcd_device_register lcd
+-alias symbol:generic_mii_ioctl mii
+-alias symbol:mii_check_media mii
+-alias symbol:mii_check_link mii
+ alias symbol:devm_lcd_device_unregister lcd
+-alias symbol:mii_ethtool_get_link_ksettings mii
+diff --git i/out/lib/modules/4.15.0-next-20180202-licheepi-nano+/source w/out/lib/modules/4.15.0-next-20180202-licheepi-nano+/source
+index 4c9d283..7baac65 120000
+--- i/out/lib/modules/4.15.0-next-20180202-licheepi-nano+/source
++++ w/out/lib/modules/4.15.0-next-20180202-licheepi-nano+/source
+@@ -1 +1 @@
+-/home/biglion/project/TTEEEESSSSST/linux-f1c100s
+\ No newline at end of file
++/home/biglion/project/sipeed/TTEEEESSSSST/linux-f1c100s
+\ No newline at end of file
+diff --git i/sound/soc/sunxi/suniv-codec.c w/sound/soc/sunxi/suniv-codec.c
+index fbb2567..3aff094 100644
+--- i/sound/soc/sunxi/suniv-codec.c
++++ w/sound/soc/sunxi/suniv-codec.c
+@@ -235,13 +235,24 @@ static int suniv_codec_prepare_capture(struct snd_pcm_substream *substream,
+ 	 *        Allwinner's code mentions that it is related
+ 	 *        related to microphone gain
+ 	 */
+-	if (of_device_is_compatible(scodec->dev->of_node,
++	/*
++	 * FIXME One More Time: Undocumented in the datasheet, 
++	 * 						so I give up to fix it.
++	 */
++
++	/* if (of_device_is_compatible(scodec->dev->of_node,
+ 								"allwinner,suniv-codec"))
+ 	{
+ 		regmap_update_bits(scodec->regmap, SUNIV_CODEC_ADC_ACTL,
++						   BIT(SUNIV_CODEC_DAC_ACTL_HPPAEN),
++						   BIT(SUNIV_CODEC_DAC_ACTL_HPPAEN));
++	}
++	else
++	{
++		regmap_update_bits(scodec->regmap, SUNIV_CODEC_ADC_ACTL,
+ 						   0x3 << 25,
+ 						   0x1 << 25);
+-	}
++	} */
+ 
+ 	return 0;
+ }
+@@ -438,7 +449,7 @@ static int suniv_codec_hw_params_playback(struct suniv_codec *scodec,
+ 
+ 		/* Set TX FIFO mode to padding the LSBs with 0 */
+ 		regmap_update_bits(scodec->regmap, SUNIV_CODEC_DAC_FIFOC,
+-				   BIT(SUNIV_CODEC_DAC_FIFOC_TX_SAMPLE_BITS),
++				   BIT(SUNIV_CODEC_DAC_FIFOC_TX_FIFO_MODE),
+ 				   0);
+ 
+ 		scodec->playback_dma_data.addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES;
+@@ -458,7 +469,7 @@ static int suniv_codec_hw_params_playback(struct suniv_codec *scodec,
+ 	return 0;
+ }
+ 
+-static int sun4i_codec_hw_params(struct snd_pcm_substream *substream,
++static int suniv_codec_hw_params(struct snd_pcm_substream *substream,
+ 				 struct snd_pcm_hw_params *params,
+ 				 struct snd_soc_dai *dai)
+ {
+@@ -837,7 +848,7 @@ struct suniv_codec_quirks {
+ 	bool has_reset;
+ };
+ 
+-static const struct suniv_codec_quirks sun4i_codec_quirks = {
++static const struct suniv_codec_quirks suniv_codec_quirks = {
+ 	.regmap_config	= &suniv_codec_regmap_config,
+ 	.codec		= &suniv_codec_codec,
+ 	.create_card	= suniv_codec_create_card,
+@@ -975,7 +986,6 @@ static int suniv_codec_probe(struct platform_device *pdev)
+ 
+ 	ret = devm_snd_dmaengine_pcm_register(&pdev->dev, NULL, 0);
+ 	if (ret) {
+-		dev_err(&pdev->dev, "fail no : %d \n", ret);
+ 		dev_err(&pdev->dev, "Failed to register against DMAEngine\n");
+ 		goto err_unregister_codec;
+ 	}
